@@ -27,56 +27,55 @@
             min-height: 100vh; display: flex; flex-direction: column; font-size: 16px;
         }
 
-        /* --- STICKY NAV (NO OVERLAP) --- */
+        /* --- STICKY NAV --- */
         .sticky-nav {
             position: sticky; top: 0; z-index: 1000;
             background: var(--bg);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(128,128,128,0.1);
         }
 
-        /* TICKER - 120s Slow Scroll */
-        .ticker-wrap { width: 100%; height: 35px; background: var(--ticker-bg); overflow: hidden; white-space: nowrap; display: flex; align-items: center; border-bottom: 1px solid rgba(128,128,128,0.1); }
-        .ticker-content { display: inline-block; padding-left: 100%; animation: ticker 100s linear infinite; }
-        .ticker-item { display: inline-block; padding: 0 2.5rem; font-size: 0.75rem; text-transform: uppercase; font-weight: 600; }
+        /* TICKER - 120s Super Slow */
+        .ticker-wrap { width: 100%; height: 35px; background: var(--ticker-bg); overflow: hidden; white-space: nowrap; display: flex; align-items: center; }
+        .ticker-content { display: inline-block; padding-left: 100%; animation: ticker 120s linear infinite; }
+        .ticker-item { display: inline-block; padding: 0 3rem; font-size: 0.75rem; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
         @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
 
-        /* HEADER */
         header { padding: 0.8rem 5%; display: flex; flex-direction: column; gap: 0.8rem; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .logo { font-size: 1.2rem; font-weight: 800; color: var(--text-main); text-decoration: none; }
         .logo span { color: var(--accent); }
         
-        .utility-belt { display: flex; gap: 8px; }
+        /* Utility Controls */
+        .utility-belt { display: flex; gap: 6px; align-items: center; }
         .micro-btn { 
             background: var(--card-bg); border: 1px solid var(--text-dim); color: var(--text-main); 
             width: 28px; height: 28px; border-radius: 50%; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 800;
+            display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 800;
         }
 
-        .search-area { display: flex; gap: 0.4rem; width: 100%; }
+        .action-bar { display: flex; gap: 0.5rem; width: 100%; align-items: center; }
+        .search-area { flex: 1; display: flex; gap: 0.4rem; }
         .loc-input { flex: 1; background: var(--card-bg); border: 1px solid var(--text-dim); color: var(--text-main); padding: 0.6rem; border-radius: 8px; outline: none; font-size: 0.85rem; }
         .loc-btn { background: var(--accent); color: white; border: none; padding: 0 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
 
-        /* CATEGORIES (Mobile Horizontal) */
+        .pc-controls { display: none; }
+
+        /* CATEGORIES (Mobile Swipable) */
         .nav-cats { display: flex; gap: 0.5rem; padding: 0.6rem 5%; background: var(--card-bg); overflow-x: auto; scrollbar-width: none; }
         .nav-cats::-webkit-scrollbar { display: none; }
-        .cat-btn { background: rgba(128,128,128,0.1); border: none; color: var(--text-main); padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 0.75rem; }
+        .cat-btn { background: rgba(128,128,128,0.1); border: none; color: var(--text-main); padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 0.75rem; font-weight: 600; }
         .cat-btn.active { background: var(--accent); color: white; }
 
-        /* WEATHER (Fluid Scaling) */
+        /* WEATHER */
         .weather-panel { background: var(--card-bg); margin: 0.8rem 5%; padding: 1.2rem; border-radius: 12px; border: 1px solid var(--accent); }
         .weather-now { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; text-align: center; gap: 0.5rem; }
         .temp-large { font-size: 2.8rem; font-weight: 800; color: var(--accent); }
         .expand-btn { background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 0.5rem; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 0.8rem; font-size: 0.75rem; }
-        
-        .forecast-grid { 
-            display: none; grid-template-columns: repeat(auto-fit, minmax(75px, 1fr)); 
-            gap: 10px; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(128,128,128,0.2); 
-        }
+        .forecast-grid { display: none; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(128,128,128,0.2); }
         .forecast-grid.active { display: grid; }
-        .forecast-card { text-align: center; font-size: 0.7rem; padding: 0.5rem; background: rgba(0,0,0,0.1); border-radius: 8px; }
+        .forecast-card { text-align: center; font-size: 0.7rem; padding: 0.5rem; background: rgba(0,0,0,0.1); border-radius: 6px; }
 
-        /* NEWS FEED */
+        /* NEWS FEED (Responsive Grid) */
         .layout { flex: 1; padding: 1rem 5%; padding-bottom: 5rem; }
         .news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 310px), 1fr)); gap: 1.2rem; }
         .news-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid rgba(128,128,128,0.1); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
@@ -85,10 +84,11 @@
         .card-body h3 { font-size: 0.95rem; line-height: 1.35; margin-bottom: 0.8rem; font-weight: 700; }
         .btn-read { margin-top: auto; background: var(--accent); color: white; text-align: center; padding: 0.7rem; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 0.8rem; }
 
-        footer { padding: 2rem; text-align: center; border-top: 1px solid rgba(128,128,128,0.1); font-size: 0.7rem; color: var(--text-dim); }
-        footer span { color: var(--accent); font-weight: bold; }
+        /* FOOTER */
+        footer { padding: 2rem; text-align: center; border-top: 1px solid rgba(128,128,128,0.1); font-size: 0.75rem; color: var(--text-dim); }
+        footer a { color: var(--accent); font-weight: 800; text-decoration: none; }
 
-        /* BUNNY */
+        /* BUNNY GATEKEEPER */
         #bunny-link { position: fixed; bottom: 1rem; right: 1rem; z-index: 1000; opacity: 0.4; }
         .bunny-svg { width: 32px; height: 32px; fill: white; }
         @keyframes bunnyDance { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px) rotate(3deg); } }
@@ -96,7 +96,9 @@
 
         @media (min-width: 768px) {
             header { flex-direction: row; justify-content: space-between; }
-            .search-area { width: 300px; }
+            .action-bar { width: 450px; }
+            .pc-controls { display: flex; gap: 8px; }
+            .mobile-controls { display: none; }
             .weather-now { text-align: left; }
             .expand-btn { width: auto; margin-top: 0; }
         }
@@ -109,14 +111,24 @@
         <header>
             <div class="header-top">
                 <a href="#" class="logo">Global<span>Pulse</span></a>
-                <div class="utility-belt">
-                    <button id="unitBtn" class="micro-btn" onclick="toggleUnits()">F</button>
-                    <button class="micro-btn" onclick="toggleTheme()">🌓</button>
+                <div class="mobile-controls">
+                    <div class="utility-belt">
+                        <button id="unitBtnMob" class="micro-btn" onclick="toggleUnits()">F</button>
+                        <button class="micro-btn" onclick="toggleTheme()">🌓</button>
+                    </div>
                 </div>
             </div>
-            <div class="search-area">
-                <input type="text" id="cityInput" class="loc-input" placeholder="City (e.g. Buffalo)">
-                <button class="loc-btn" onclick="searchLocation()">Update</button>
+            <div class="action-bar">
+                <div class="search-area">
+                    <input type="text" id="cityInput" class="loc-input" placeholder="City (e.g. Buffalo)">
+                    <button class="loc-btn" onclick="searchLocation()">Update</button>
+                </div>
+                <div class="pc-controls">
+                    <div class="utility-belt">
+                        <button id="unitBtnPC" class="micro-btn" onclick="toggleUnits()">F</button>
+                        <button class="micro-btn" onclick="toggleTheme()">🌓</button>
+                    </div>
+                </div>
             </div>
         </header>
         <nav class="nav-cats" id="categoryNav">
@@ -142,7 +154,7 @@
 
     <div class="layout"><div id="news-grid" class="news-grid"></div></div>
 
-    <footer>© 2025 GlobalPulse Interface • Created by <span>ProjectM</span></footer>
+    <footer>© 2025 GlobalPulse • Created by <a href="https://puffyfactory.com" target="_blank">ProjectM</a></footer>
 
     <a href="https://puffyfactory.com" target="_blank" id="bunny-link">
         <svg class="bunny-svg" viewBox="0 0 24 24"><path d="M7 2 Q6 10 9 12" stroke="white" stroke-width="2" fill="none"/><path d="M17 2 Q18 10 15 12" stroke="white" stroke-width="2" fill="none"/><circle cx="12" cy="15" r="6" fill="white" /><circle cx="10" cy="14" r="0.8" fill="#0b0f1a" /><circle cx="14" cy="14" r="0.8" fill="#0b0f1a" /><path d="M11.5 16 L12.5 16 L12 17 Z" fill="#f43f5e" /></svg>
@@ -152,17 +164,15 @@
         const NEWS_API_KEY = '2d3ffe08d7f14128a211edf8f45cb1c0';
         let weatherCache = null, currentUnit = 'F', currentCity = "", currentCat = 'general';
 
-        // Verified Intel Fallback (Dec 17, 2025)
-        const INTEL_FALLBACK = [
-            { title: "Bills Rally Past Patriots 35-31; Josh Allen Confirms Pregnancy with Hailee Steinfeld", source: "SportsNet", img: "https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=500" },
-            { title: "US Treasury Secretary Scott Bessent Strategy Targets 3% GDP Growth Amid Sanctions", source: "US Treasury", img: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=500" },
-            { title: "SpaceX Starship Booster Readiness Check Complete for Upcoming Mission", source: "TechIntel", img: "https://images.unsplash.com/photo-1517976487492-5750f3195933?w=500" },
-            { title: "Ethereum Whales Accumulate Near $2.8k Level Amid Market Shifts", source: "CoinPulse", img: "https://images.unsplash.com/photo-1621416894569-0f39ed31d247?w=500" },
-            { title: "NASA's Next-Gen Infrared Telescope Nears Final Deployment Phase", source: "ScienceMonitor", img: "https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?w=500" },
-            { title: "New Buffalo Waterfront Project Breaks Ground for 2026 Season", source: "Buffalo Today", img: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=500" }
-        ];
+        const STATES = { 'New York': 'NY', 'California': 'CA', 'Texas': 'TX', 'Florida': 'FL', 'Illinois': 'IL', 'Ohio': 'OH', 'Michigan': 'MI', 'Pennsylvania': 'PA', 'Georgia': 'GA', 'North Carolina': 'NC', 'Washington': 'WA', 'Massachusetts': 'MA', 'Arizona': 'AZ', 'Colorado': 'CO', 'Oregon': 'OR', 'Nevada': 'NV' };
 
-        const STATES = { 'New York': 'NY', 'California': 'CA', 'Texas': 'TX', 'Florida': 'FL', 'Illinois': 'IL', 'Ohio': 'OH', 'Michigan': 'MI', 'Pennsylvania': 'PA', 'Georgia': 'GA', 'North Carolina': 'NC' };
+        // Intelligence Fallback (Dec 17, 2025)
+        const INTEL_FALLBACK = [
+            { title: "Scott Bessent Nominated as US Treasury Secretary; Market Reacts Favorably", source: "WallSt", img: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=500" },
+            { title: "Buffalo Bills Clinch Top Playoff Seed After Decisive Victory", source: "BillsMafia", img: "https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=500" },
+            { title: "Ethereum (ETH) Whale Activity Spikes as Institutional Adoption Grows", source: "CoinPulse", img: "https://images.unsplash.com/photo-1621416894569-0f39ed31d247?w=500" },
+            { title: "SpaceX Starship Booster Ready for Next-Phase Recovery Test", source: "TechIntel", img: "https://images.unsplash.com/photo-1517976487492-5750f3195933?w=500" }
+        ];
 
         async function initWeather() {
             try {
@@ -208,7 +218,7 @@
             document.getElementById('forecast-grid').innerHTML = daily.time.slice(0, 5).map((date, i) => {
                 let max = daily.temperature_2m_max[i], min = daily.temperature_2m_min[i];
                 if (currentUnit === 'F') { max = (max * 9/5) + 32; min = (min * 9/5) + 32; }
-                return `<div class="forecast-card"><div style="color:var(--accent); font-weight:800;">${new Date(date).toLocaleDateString([], {weekday: 'short'})}</div><div style="margin:4px 0;">${Math.round(max)}°/${Math.round(min)}°</div><div style="font-size:0.6rem;">🌧 ${daily.precipitation_probability_max[i]}%</div></div>`;
+                return `<div class="forecast-card"><div style="color:var(--accent); font-weight:800;">${new Date(date).toLocaleDateString([], {weekday: 'short'})}</div><div>${Math.round(max)}° / ${Math.round(min)}°</div><div style="font-size:0.6rem;">🌧 ${daily.precipitation_probability_max[i]}%</div></div>`;
             }).join('');
         }
 
@@ -218,7 +228,8 @@
             
             const proxy = "https://corsproxy.io/?";
             let q = citySearch ? `q=${citySearch}+${category}` : `category=${category}`;
-            const target = `https://newsapi.org/v2/top-headlines?country=us&${q}&pageSize=36&apiKey=${NEWS_API_KEY}`;
+            // Requested pageSize=50 for deep news articles
+            const target = `https://newsapi.org/v2/top-headlines?country=us&${q}&pageSize=50&apiKey=${NEWS_API_KEY}`;
             
             try {
                 const res = await fetch(proxy + encodeURIComponent(target));
@@ -247,7 +258,12 @@
             fetchNews(cat, currentCity);
         }
 
-        function toggleUnits() { currentUnit = currentUnit === 'C' ? 'F' : 'C'; document.getElementById('unitBtn').innerText = currentUnit; updateWeatherDisplay(); }
+        function toggleUnits() { 
+            currentUnit = currentUnit === 'C' ? 'F' : 'C'; 
+            document.getElementById('unitBtnPC').innerText = currentUnit;
+            document.getElementById('unitBtnMob').innerText = currentUnit;
+            updateWeatherDisplay(); 
+        }
         function toggleForecast() { document.getElementById('forecast-grid').classList.toggle('active'); }
         function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }
         function getWeatherDesc(code) {
