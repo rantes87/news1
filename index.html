@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GlobalPulse | Pro Interface</title>
+    <title>GlobalPulse | Pro News & Weather</title>
     <style>
         :root {
             --bg: #0b0f1a;
@@ -24,20 +24,24 @@
         body { 
             background-color: var(--bg); color: var(--text-main); 
             font-family: 'Inter', system-ui, sans-serif; 
-            min-height: 100vh; display: flex; flex-direction: column; font-size: 16px;
+            min-height: 100vh; display: flex; flex-direction: column;
         }
 
-        /* TICKER - 120s Duration */
-        .ticker-wrap { width: 100%; height: 35px; background: var(--ticker-bg); overflow: hidden; white-space: nowrap; display: flex; align-items: center; border-bottom: 1px solid rgba(128,128,128,0.2); position: sticky; top: 0; z-index: 100; }
-        .ticker-label { background: var(--heart); color: white; padding: 0 0.8rem; font-weight: bold; font-size: 0.6rem; height: 100%; display: flex; align-items: center; }
-        .ticker-content { display: inline-block; padding-left: 100%; animation: ticker 120s linear infinite; }
-        .ticker-item { display: inline-block; padding: 0 2rem; font-size: 0.75rem; text-transform: uppercase; }
+        .sticky-nav {
+            position: sticky; top: 0; z-index: 1000;
+            background: var(--bg);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        /* TICKER - Label removed, 100s Slow Scroll */
+        .ticker-wrap { width: 100%; height: 32px; background: var(--ticker-bg); overflow: hidden; white-space: nowrap; display: flex; align-items: center; border-bottom: 1px solid rgba(128,128,128,0.1); }
+        .ticker-content { display: inline-block; padding-left: 100%; animation: ticker 100s linear infinite; }
+        .ticker-item { display: inline-block; padding: 0 2rem; font-size: 0.75rem; text-transform: uppercase; font-weight: 600; }
         @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
 
-        /* HEADER */
-        header { background: var(--bg); padding: 0.8rem 5%; display: flex; flex-direction: column; gap: 0.6rem; border-bottom: 1px solid rgba(128,128,128,0.1); }
-        .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-        .logo { font-size: 1.1rem; font-weight: 800; color: var(--text-main); text-decoration: none; }
+        header { padding: 0.8rem 5%; display: flex; flex-direction: column; gap: 0.8rem; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.2rem; font-weight: 800; color: var(--text-main); text-decoration: none; }
         .logo span { color: var(--accent); }
         
         .controls { display: flex; gap: 6px; }
@@ -48,72 +52,86 @@
         }
 
         .search-area { display: flex; gap: 0.4rem; width: 100%; }
-        .loc-input { flex: 1; background: var(--card-bg); border: 1px solid var(--text-dim); color: var(--text-main); padding: 0.5rem; border-radius: 6px; outline: none; font-size: 0.85rem; }
-        .loc-btn { background: var(--accent); color: white; border: none; padding: 0 0.8rem; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.75rem; }
+        .loc-input { flex: 1; background: var(--card-bg); border: 1px solid var(--text-dim); color: var(--text-main); padding: 0.6rem; border-radius: 8px; outline: none; font-size: 0.85rem; }
+        .loc-btn { background: var(--accent); color: white; border: none; padding: 0 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
 
-        /* WEATHER */
-        .weather-panel { background: var(--card-bg); margin: 0.8rem 5%; padding: 1rem; border-radius: 10px; border: 1px solid var(--accent); }
-        .weather-now { display: flex; justify-content: space-between; align-items: center; }
-        .temp-large { font-size: 2.2rem; font-weight: 800; color: var(--accent); }
-        .expand-btn { background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 0.4rem; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 0.8rem; font-size: 0.7rem; }
+        .nav-cats { display: flex; gap: 0.5rem; padding: 0.6rem 5%; background: var(--card-bg); overflow-x: auto; scrollbar-width: none; }
+        .nav-cats::-webkit-scrollbar { display: none; }
+        .cat-btn { background: rgba(128,128,128,0.1); border: none; color: var(--text-main); padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 0.75rem; }
+        .cat-btn.active { background: var(--accent); color: white; }
+
+        .weather-panel { background: var(--card-bg); margin: 0.8rem 5%; padding: 1rem; border-radius: 12px; border: 1px solid var(--accent); }
+        .weather-now { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; text-align: center; gap: 0.5rem; }
+        .temp-large { font-size: 2.8rem; font-weight: 800; color: var(--accent); }
+        .expand-btn { background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 0.5rem; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 0.8rem; font-size: 0.75rem; }
         
-        .forecast-container { display: none; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 8px; margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid rgba(128,128,128,0.2); }
-        .forecast-container.active { display: grid; }
-        .forecast-card { text-align: center; font-size: 0.65rem; padding: 0.4rem; background: rgba(0,0,0,0.1); border-radius: 6px; }
+        .forecast-grid { 
+            display: none; grid-template-columns: repeat(auto-fit, minmax(75px, 1fr)); 
+            gap: 10px; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(128,128,128,0.2); 
+        }
+        .forecast-grid.active { display: grid; }
+        .forecast-card { text-align: center; font-size: 0.7rem; padding: 0.5rem; background: rgba(0,0,0,0.1); border-radius: 8px; }
 
-        /* NEWS GRID */
         .layout { flex: 1; padding: 1rem 5%; padding-bottom: 5rem; }
-        .news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 1rem; }
-        .news-card { background: var(--card-bg); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid rgba(128,128,128,0.1); }
-        .news-card img { width: 100%; height: 160px; object-fit: cover; background: #111; }
-        .card-body { padding: 0.8rem; flex: 1; display: flex; flex-direction: column; }
-        .card-body h3 { font-size: 0.9rem; line-height: 1.3; margin-bottom: 0.5rem; }
-        .btn-read { margin-top: auto; background: var(--accent); color: white; text-align: center; padding: 0.6rem; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 0.75rem; }
+        .news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 1.2rem; }
+        .news-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid rgba(128,128,128,0.1); }
+        .news-card img { width: 100%; height: 180px; object-fit: cover; background: #111; }
+        .card-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
+        .card-body h3 { font-size: 0.95rem; line-height: 1.3; margin-bottom: 0.8rem; font-weight: 700; }
+        .btn-read { margin-top: auto; background: var(--accent); color: white; text-align: center; padding: 0.7rem; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 0.8rem; }
 
-        footer { padding: 1rem; text-align: center; border-top: 1px solid rgba(128,128,128,0.1); font-size: 0.65rem; color: var(--text-dim); }
+        footer { padding: 1.5rem; text-align: center; border-top: 1px solid rgba(128,128,128,0.1); font-size: 0.7rem; color: var(--text-dim); }
         footer span { color: var(--accent); font-weight: bold; }
 
-        /* BUNNY */
-        #bunny-link { position: fixed; bottom: 0.8rem; right: 0.8rem; z-index: 1000; opacity: 0.4; }
-        .bunny-svg { width: 28px; height: 28px; fill: white; }
-        @keyframes bunnyDance { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+        #bunny-link { position: fixed; bottom: 1rem; right: 1rem; z-index: 1000; opacity: 0.4; }
+        .bunny-svg { width: 30px; height: 30px; fill: white; }
+        @keyframes bunnyDance { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
         #bunny-link:hover .bunny-svg { animation: bunnyDance 0.5s infinite; opacity: 1; }
 
         @media (min-width: 768px) {
-            header { flex-direction: row; align-items: center; justify-content: space-between; }
-            .search-area { width: 280px; }
+            header { flex-direction: row; justify-content: space-between; }
+            .search-area { width: 300px; }
+            .weather-now { text-align: left; }
             .expand-btn { width: auto; margin-top: 0; }
         }
     </style>
 </head>
 <body data-theme="dark">
 
-    <div class="ticker-wrap"><div class="ticker-label">LATEST</div><div id="ticker-content" class="ticker-content">Syncing satellite uplink...</div></div>
-
-    <header>
-        <div class="header-top">
-            <a href="#" class="logo">Global<span>Pulse</span></a>
-            <div class="controls">
-                <button id="unitBtn" class="micro-btn" onclick="toggleUnits()">F</button>
-                <button class="micro-btn" onclick="toggleTheme()">🌓</button>
+    <div class="sticky-nav">
+        <div class="ticker-wrap"><div id="ticker-content" class="ticker-content">Initializing global news feed...</div></div>
+        <header>
+            <div class="header-top">
+                <a href="#" class="logo">Global<span>Pulse</span></a>
+                <div class="controls">
+                    <button id="unitBtn" class="micro-btn" onclick="toggleUnits()">F</button>
+                    <button class="micro-btn" onclick="toggleTheme()">🌓</button>
+                </div>
             </div>
-        </div>
-        <div class="search-area">
-            <input type="text" id="cityInput" class="loc-input" placeholder="City (e.g. Buffalo)">
-            <button class="loc-btn" onclick="searchLocation()">Update</button>
-        </div>
-    </header>
+            <div class="search-area">
+                <input type="text" id="cityInput" class="loc-input" placeholder="City (e.g. Buffalo)">
+                <button class="loc-btn" onclick="searchLocation()">Update</button>
+            </div>
+        </header>
+        <nav class="nav-cats" id="categoryNav">
+            <button class="cat-btn active" onclick="changeCategory('general', this)">Top News</button>
+            <button class="cat-btn" onclick="changeCategory('technology', this)">Tech</button>
+            <button class="cat-btn" onclick="changeCategory('sports', this)">Sports</button>
+            <button class="cat-btn" onclick="changeCategory('business', this)">Finance</button>
+            <button class="cat-btn" onclick="changeCategory('science', this)">Science</button>
+        </nav>
+    </div>
 
     <section class="weather-panel">
         <div class="weather-now">
             <div>
-                <div id="w-loc" style="font-weight: 800; font-size: 1rem;">Searching...</div>
-                <div id="w-desc" style="color: var(--text-dim); font-size: 0.75rem;">Connecting...</div>
+                <div id="w-loc" style="font-weight: 800; font-size: 1.2rem;">Searching...</div>
+                <div id="w-desc" style="color: var(--text-dim); margin-top: 0.2rem; font-size: 0.85rem;">Syncing data</div>
             </div>
             <div id="w-temp" class="temp-large">--°</div>
             <button class="expand-btn" onclick="toggleForecast()">5-Day Forecast ↓</button>
         </div>
-        <div id="forecast-grid" class="forecast-container"></div>
+        <div id="forecast-grid" class="forecast-grid"></div>
     </section>
 
     <div class="layout"><div id="news-grid" class="news-grid"></div></div>
@@ -128,39 +146,40 @@
         const NEWS_API_KEY = '2d3ffe08d7f14128a211edf8f45cb1c0';
         let weatherCache = null, currentUnit = 'F', currentCity = "";
 
-        // Today's Dec 17, 2025 "Intelligence Data" (Fallback if API is blocked)
-        const INTEL_NEWS = [
-            { title: "Treasury Secretary Scott Bessent Orders New Sanctions Against Cartels", source: "Treasury.gov", img: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=400" },
-            { title: "Bills Defeat Patriots 35-31; Josh Allen Prepares for Browns Clash", source: "BillsMafia", img: "https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=400" },
-            { title: "Ethereum (ETH) Slides to $2,822 as Market Volatility Continues", source: "CoinPulse", img: "https://images.unsplash.com/photo-1621416894569-0f39ed31d247?w=400" },
-            { title: "DOT Secretary Sean Duffy Launches National Advanced Air Mobility Strategy", source: "US Gov", img: "https://images.unsplash.com/photo-1517976487492-5750f3195933?w=400" },
-            { title: "HHS Launches Roy Wilkins Fellowship for HBCU Public Service Students", source: "HHS.gov", img: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400" }
-        ];
+        // Helper to convert State name to Abbreviation
+        function getStateAbbr(stateName) {
+            const states = {
+                'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA', 'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE', 'Florida': 'FL', 'Georgia': 'GA', 'Hawaii': 'HI', 'Idaho': 'ID', 'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA', 'Kansas': 'KS', 'Kentucky': 'KY', 'Louisiana': 'LA', 'Maine': 'ME', 'Maryland': 'MD', 'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS', 'Missouri': 'MO', 'Montana': 'MT', 'Nebraska': 'NE', 'Nevada': 'NV', 'New Hampshire': 'NH', 'New Jersey': 'NJ', 'New Mexico': 'NM', 'New York': 'NY', 'North Carolina': 'NC', 'North Dakota': 'ND', 'Ohio': 'OH', 'Oklahoma': 'OK', 'Oregon': 'OR', 'Pennsylvania': 'PA', 'Rhode Island': 'RI', 'South Carolina': 'SC', 'South Dakota': 'SD', 'Tennessee': 'TN', 'Texas': 'TX', 'Utah': 'UT', 'Vermont': 'VT', 'Virginia': 'VA', 'Washington': 'WA', 'West Virginia': 'WV', 'Wisconsin': 'WI', 'Wyoming': 'WY'
+            };
+            return states[stateName] || stateName;
+        }
 
         async function initWeather() {
             try {
                 const loc = await (await fetch('https://ipapi.co/json/')).json();
-                updateAllData(loc.city, loc.latitude, loc.longitude);
-            } catch (e) { updateAllData("New York", 40.71, -74.00); }
+                // Note: ipapi provides 'region' as the full name or code; we'll try to find lat/lon geodata for consistency
+                searchLocation(loc.city);
+            } catch (e) { updateAllData("New York", "NY", 40.71, -74.00); }
         }
 
-        async function searchLocation() {
-            const city = document.getElementById('cityInput').value;
+        async function searchLocation(queryCity = null) {
+            const city = queryCity || document.getElementById('cityInput').value;
             if(!city) return;
             try {
                 const geo = await (await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1&format=json`)).json();
                 if(geo.results) {
                     const res = geo.results[0];
-                    updateAllData(res.name, res.latitude, res.longitude);
+                    const stateAbbr = getStateAbbr(res.admin1);
+                    updateAllData(res.name, stateAbbr, res.latitude, res.longitude);
                 }
             } catch (e) { console.error(e); }
         }
 
-        function updateAllData(city, lat, lon) {
+        function updateAllData(city, state, lat, lon) {
             currentCity = city;
-            document.getElementById('w-loc').innerText = city;
+            document.getElementById('w-loc').innerText = `${city}, ${state}`;
             fetchWeather(lat, lon);
-            fetchNews(city);
+            fetchNews('general', city);
         }
 
         async function fetchWeather(lat, lon) {
@@ -184,40 +203,33 @@
             }).join('');
         }
 
-        async function fetchNews(city = "") {
+        async function fetchNews(category = 'general', citySearch = "") {
             const grid = document.getElementById('news-grid');
-            grid.innerHTML = "<p style='text-align:center;'>Updating Intel...</p>";
-            
-            // Using a free CORS proxy - sometimes these are hit/miss
+            grid.innerHTML = "<p style='text-align:center; padding:2rem;'>Syncing satellite link...</p>";
             const proxy = "https://corsproxy.io/?";
-            const target = `https://newsapi.org/v2/everything?q=${city}+news&pageSize=12&apiKey=${NEWS_API_KEY}`;
-            
+            let q = citySearch ? `q=${citySearch}+${category}` : `category=${category}`;
+            const target = `https://newsapi.org/v2/top-headlines?country=us&${q}&pageSize=24&apiKey=${NEWS_API_KEY}`;
             try {
                 const res = await fetch(proxy + encodeURIComponent(target));
                 const data = await res.json();
-                if(data.articles && data.articles.length > 0) renderNews(data.articles);
-                else throw "Empty";
-            } catch (e) { 
-                console.log("CORS block or empty result. Loading intel fallback.");
-                renderNews(INTEL_NEWS, true); 
-            }
+                renderNews(data.articles || []);
+            } catch (e) { grid.innerHTML = "<p style='text-align:center;'>Feed offline.</p>"; }
         }
 
-        function renderNews(articles, isFallback = false) {
+        function renderNews(articles) {
             const grid = document.getElementById('news-grid');
             const ticker = document.getElementById('ticker-content');
-            ticker.innerHTML = articles.slice(0, 8).map(a => `<span class="ticker-item">${a.title.toUpperCase()} •</span>`).join('');
-            grid.innerHTML = articles.map(art => `
-                <div class="news-card">
-                    <img src="${art.urlToImage || art.img || 'https://via.placeholder.com/400x200'}">
-                    <div class="card-body">
-                        <h3>${art.title}</h3>
-                        <div style="font-size:0.7rem; color:var(--text-dim); margin-top:5px;">${art.source.name || art.source}</div>
-                        <a href="${art.url || '#'}" target="_blank" class="btn-read" style="margin-top:15px;">Access Report</a>
-                    </div>
-                </div>
-            `).join('');
-            if(isFallback) grid.insertAdjacentHTML('afterbegin', '<p style="grid-column:1/-1; text-align:center; font-size:0.7rem; color:var(--accent);">Intel Sync: Live Offline. Loading Fallback Data.</p>');
+            ticker.innerHTML = articles.slice(0, 10).map(a => `<span class="ticker-item">${a.title.toUpperCase()} •</span>`).join('');
+            grid.innerHTML = articles.map(art => {
+                if (!art.urlToImage) return '';
+                return `<div class="news-card"><img src="${art.urlToImage}"><div class="card-body"><h3>${art.title}</h3><div style="font-size:0.7rem; color:var(--text-dim); margin-top:5px;">${art.source.name}</div><a href="${art.url}" target="_blank" class="btn-read" style="margin-top:15px;">Read Report</a></div></div>`;
+            }).join('');
+        }
+
+        function changeCategory(cat, btn) {
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            fetchNews(cat, currentCity);
         }
 
         function toggleUnits() { currentUnit = currentUnit === 'C' ? 'F' : 'C'; document.getElementById('unitBtn').innerText = currentUnit; updateWeatherDisplay(); }
