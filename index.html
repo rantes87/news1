@@ -1,277 +1,366 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GlobalPulse | Pro Interface</title>
+    <title>Universal Evolution: Precise Persistence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #0b0f1a;
-            --card-bg: #161e2e;
-            --accent: #38bdf8;
-            --heart: #f43f5e;
-            --ticker-bg: #1e293b;
-            --text-main: #f1f5f9;
-            --text-dim: #94a3b8;
+        :root[data-theme="dark"] {
+            --atp-color: #00ff88; --atp-glow: rgba(0, 255, 136, 0.4);
+            --dna-color: #bc13fe; --dna-glow: rgba(188, 19, 254, 0.4);
+            --danger-color: #ff3860; --bg-color: #050508;
+            --panel-bg: rgba(15, 15, 25, 0.96);
+            --panel-border: 1px solid rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff; --text-secondary: #8899aa;
+            --combo-color: #ffdf00;
+        }
+        :root[data-theme="light"] {
+            --atp-color: #00a86b; --atp-glow: rgba(0, 168, 107, 0.2);
+            --dna-color: #8e44ad; --dna-glow: rgba(142, 68, 173, 0.2);
+            --danger-color: #c0392b; --bg-color: #f4f7f9;
+            --panel-bg: rgba(255, 255, 255, 0.98);
+            --panel-border: 1px solid rgba(0, 0, 0, 0.1);
+            --text-primary: #2c3e50; --text-secondary: #607d8b;
+            --combo-color: #f39c12;
         }
 
-        [data-theme="light"] {
-            --bg: #f1f5f9; --card-bg: #ffffff; --accent: #0284c7; --ticker-bg: #e2e8f0; --text-main: #0f172a; --text-dim: #475569;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; transition: background 0.3s, color 0.3s; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Roboto', sans-serif; background: var(--bg-color); color: var(--text-primary); margin: 0; min-height: 100vh; overflow: hidden; }
         
-        body { 
-            background-color: var(--bg); color: var(--text-main); 
-            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
-            min-height: 100vh; display: flex; flex-direction: column; font-size: 16px;
-        }
+        #white-out { position: fixed; top:0; left:0; width:100%; height:100%; background:white; opacity:0; pointer-events:none; z-index:9999; transition: opacity 0.3s; }
+        #game-wrapper { display: grid; grid-template-columns: 340px 1fr 340px; width: 100%; max-width: 1600px; min-height: 100vh; gap: 20px; padding: 25px; padding-top: 85px; }
+        @media (max-width: 1200px) { #game-wrapper { grid-template-columns: 1fr; padding-top: 100px; } .main-display { order: -1; } .panel { max-height: 400px; } }
 
-        /* --- STICKY NAV --- */
-        .sticky-nav {
-            position: sticky; top: 0; z-index: 1000;
-            background: var(--bg);
-            border-bottom: 1px solid rgba(128,128,128,0.1);
-        }
+        .panel { background: var(--panel-bg); backdrop-filter: blur(20px); border-radius: 20px; border: var(--panel-border); padding: 20px; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .panel-header { font-family: 'Orbitron'; font-size: 0.85em; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; margin-bottom: 15px; text-transform: uppercase; color: var(--atp-color); }
+        .main-display { position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
 
-        /* TICKER - 120s Super Slow */
-        .ticker-wrap { width: 100%; height: 35px; background: var(--ticker-bg); overflow: hidden; white-space: nowrap; display: flex; align-items: center; }
-        .ticker-content { display: inline-block; padding-left: 100%; animation: ticker 120s linear infinite; }
-        .ticker-item { display: inline-block; padding: 0 3rem; font-size: 0.75rem; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
-        @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+        .resource-hud { text-align: center; background: var(--panel-bg); padding: 20px; border-radius: 25px; border: var(--panel-border); box-shadow: 0 5px 20px rgba(0,0,0,0.2); position: relative; z-index: 10; width: 100%; }
+        .res-val { font-family: 'Orbitron'; font-weight: 700; font-size: 2em; filter: drop-shadow(0 0 8px currentColor); }
+        .res-ps { font-size: 0.7em; font-family: 'Orbitron'; color: var(--text-secondary); margin-top: 5px; opacity: 0.8; }
 
-        header { padding: 0.8rem 5%; display: flex; flex-direction: column; gap: 0.8rem; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-        .logo { font-size: 1.2rem; font-weight: 800; color: var(--text-main); text-decoration: none; }
-        .logo span { color: var(--accent); }
+        #combo-meter { position: absolute; right: 20px; top: 20px; font-family: 'Orbitron'; text-align: right; opacity: 0; transition: opacity 0.3s; }
+        #combo-meter.active { opacity: 1; }
+        .combo-x { font-size: 1.5em; color: var(--combo-color); font-weight: bold; display: block; }
+
+        #specimen-container { position: relative; width: 260px; height: 260px; margin: 20px auto; display: flex; justify-content: center; align-items: center; border-radius: 50%; border: 1px solid var(--atp-color); box-shadow: 0 0 40px var(--atp-glow); transition: 0.2s; z-index: 5; }
+        #specimen { font-size: 90px; cursor: pointer; user-select: none; z-index: 6; transition: transform 0.05s; }
+        #specimen.singularity { font-size: 25px; color: #fff; text-shadow: 0 0 20px #fff, 0 0 40px var(--atp-color); }
+
+        @keyframes cosmic-wave { 0% { transform: scale(0.5); opacity: 1; border-width: 20px; } 100% { transform: scale(5); opacity: 0; border-width: 0px; } }
+        .cosmic-burst { position: absolute; top: 50%; left: 50%; width: 200px; height: 200px; margin-left: -100px; margin-top: -100px; border-radius: 50%; border: 10px solid var(--atp-color); pointer-events: none; z-index: 1; animation: cosmic-wave 1.2s ease-out forwards; mix-blend-mode: screen; }
+
+        .ripple { position: absolute; width: 100%; height: 100%; border: 2px solid var(--atp-color); border-radius: 50%; pointer-events: none; animation: rippleEffect 0.5s ease-out forwards; }
+        @keyframes rippleEffect { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.8); opacity: 0; } }
+
+        .upgrade-card { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--atp-color); display: flex; justify-content: space-between; align-items: center; }
+        .dna-card { border-left-color: var(--dna-color); }
+
+        button { font-family: 'Orbitron'; font-size: 0.7em; padding: 10px; border-radius: 8px; border: none; cursor: pointer; background: var(--atp-color); color: #000; font-weight: bold; min-width: 85px; }
+        button:disabled { opacity: 0.2; cursor: not-allowed; }
+
+        .top-bar { position: fixed; top:0; left:0; width:100%; height:75px; background: var(--panel-bg); backdrop-filter: blur(25px); display: flex; justify-content: space-between; align-items: center; padding: 0 25px; border-bottom: var(--panel-border); z-index: 1000; }
         
-        /* Utility Controls */
-        .utility-belt { display: flex; gap: 6px; align-items: center; }
-        .micro-btn { 
-            background: var(--card-bg); border: 1px solid var(--text-dim); color: var(--text-main); 
-            width: 28px; height: 28px; border-radius: 50%; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 800;
-        }
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index: 5000; padding: 40px; overflow-y: auto; }
+        .modal-content { max-width: 600px; margin: 40px auto; background: #111; padding: 30px; border-radius: 20px; border: 1px solid var(--atp-color); text-align: center; }
+        
+        .archive-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-top: 20px; }
+        .history-card { background: #1a1a1a; padding: 15px; border-radius: 12px; border-left: 3px solid var(--atp-color); text-align: left; }
 
-        .action-bar { display: flex; gap: 0.5rem; width: 100%; align-items: center; }
-        .search-area { flex: 1; display: flex; gap: 0.4rem; }
-        .loc-input { flex: 1; background: var(--card-bg); border: 1px solid var(--text-dim); color: var(--text-main); padding: 0.6rem; border-radius: 8px; outline: none; font-size: 0.85rem; }
-        .loc-btn { background: var(--accent); color: white; border: none; padding: 0 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
-
-        .pc-controls { display: none; }
-
-        /* CATEGORIES (Mobile Swipable) */
-        .nav-cats { display: flex; gap: 0.5rem; padding: 0.6rem 5%; background: var(--card-bg); overflow-x: auto; scrollbar-width: none; }
-        .nav-cats::-webkit-scrollbar { display: none; }
-        .cat-btn { background: rgba(128,128,128,0.1); border: none; color: var(--text-main); padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 0.75rem; font-weight: 600; }
-        .cat-btn.active { background: var(--accent); color: white; }
-
-        /* WEATHER */
-        .weather-panel { background: var(--card-bg); margin: 0.8rem 5%; padding: 1.2rem; border-radius: 12px; border: 1px solid var(--accent); }
-        .weather-now { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; text-align: center; gap: 0.5rem; }
-        .temp-large { font-size: 2.8rem; font-weight: 800; color: var(--accent); }
-        .expand-btn { background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 0.5rem; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 0.8rem; font-size: 0.75rem; }
-        .forecast-grid { display: none; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(128,128,128,0.2); }
-        .forecast-grid.active { display: grid; }
-        .forecast-card { text-align: center; font-size: 0.7rem; padding: 0.5rem; background: rgba(0,0,0,0.1); border-radius: 6px; }
-
-        /* NEWS FEED (Responsive Grid) */
-        .layout { flex: 1; padding: 1rem 5%; padding-bottom: 5rem; }
-        .news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 310px), 1fr)); gap: 1.2rem; }
-        .news-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid rgba(128,128,128,0.1); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .news-card img { width: 100%; height: 180px; object-fit: cover; background: #111; }
-        .card-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
-        .card-body h3 { font-size: 0.95rem; line-height: 1.35; margin-bottom: 0.8rem; font-weight: 700; }
-        .btn-read { margin-top: auto; background: var(--accent); color: white; text-align: center; padding: 0.7rem; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 0.8rem; }
-
-        /* FOOTER */
-        footer { padding: 2rem; text-align: center; border-top: 1px solid rgba(128,128,128,0.1); font-size: 0.75rem; color: var(--text-dim); }
-        footer a { color: var(--accent); font-weight: 800; text-decoration: none; }
-
-        /* BUNNY GATEKEEPER */
-        #bunny-link { position: fixed; bottom: 1rem; right: 1rem; z-index: 1000; opacity: 0.4; }
-        .bunny-svg { width: 32px; height: 32px; fill: white; }
-        @keyframes bunnyDance { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px) rotate(3deg); } }
-        #bunny-link:hover .bunny-svg { animation: bunnyDance 0.5s infinite; opacity: 1; }
-
-        @media (min-width: 768px) {
-            header { flex-direction: row; justify-content: space-between; }
-            .action-bar { width: 450px; }
-            .pc-controls { display: flex; gap: 8px; }
-            .mobile-controls { display: none; }
-            .weather-now { text-align: left; }
-            .expand-btn { width: auto; margin-top: 0; }
-        }
+        #progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--atp-color), var(--dna-color)); transition: width 0.3s; }
     </style>
 </head>
-<body data-theme="dark">
+<body>
 
-    <div class="sticky-nav">
-        <div class="ticker-wrap"><div id="ticker-content" class="ticker-content">Syncing satellite Intel feed...</div></div>
-        <header>
-            <div class="header-top">
-                <a href="#" class="logo">Global<span>Pulse</span></a>
-                <div class="mobile-controls">
-                    <div class="utility-belt">
-                        <button id="unitBtnMob" class="micro-btn" onclick="toggleUnits()">F</button>
-                        <button class="micro-btn" onclick="toggleTheme()">🌓</button>
-                    </div>
-                </div>
-            </div>
-            <div class="action-bar">
-                <div class="search-area">
-                    <input type="text" id="cityInput" class="loc-input" placeholder="City (e.g. Buffalo)">
-                    <button class="loc-btn" onclick="searchLocation()">Update</button>
-                </div>
-                <div class="pc-controls">
-                    <div class="utility-belt">
-                        <button id="unitBtnPC" class="micro-btn" onclick="toggleUnits()">F</button>
-                        <button class="micro-btn" onclick="toggleTheme()">🌓</button>
-                    </div>
-                </div>
-            </div>
-        </header>
-        <nav class="nav-cats" id="categoryNav">
-            <button class="cat-btn active" onclick="changeCategory('general', this)">Top News</button>
-            <button class="cat-btn" onclick="changeCategory('technology', this)">Tech</button>
-            <button class="cat-btn" onclick="changeCategory('sports', this)">Sports</button>
-            <button class="cat-btn" onclick="changeCategory('business', this)">Finance</button>
-            <button class="cat-btn" onclick="changeCategory('science', this)">Science</button>
-        </nav>
+<div id="white-out"></div>
+
+<div class="top-bar">
+    <div style="font-family:'Orbitron'; font-size:0.8em; letter-spacing:1px;">
+        UNI: <span id="uni-val" style="color:gold">1</span> | <span id="era-val">VOID</span>
+    </div>
+    <div style="display:flex; gap:12px; align-items: center;">
+        <button onclick="toggleModal('archive-modal')" style="background:none; border:1px solid var(--text-secondary); color:var(--text-secondary); min-width:auto;">ARCHIVE</button>
+        <button onclick="toggleTheme()" style="min-width:auto; background:#333; color:#fff;">🌗</button>
+        <button onclick="resetGame()" style="min-width:auto; background:var(--danger-color); color:#fff;">RESET</button>
+    </div>
+</div>
+
+<div id="offline-modal" class="modal">
+    <div class="modal-content">
+        <h2 style="font-family:'Orbitron'; color:gold;">UNIVERSE RECONNECTED</h2>
+        <div style="margin: 20px 0; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 15px;">
+            <div id="offline-atp" style="color:var(--atp-color); font-size: 1.5em; font-family: 'Orbitron';">+0 Energy</div>
+            <div id="offline-dna" style="color:var(--dna-color); font-size: 1.1em; font-family: 'Orbitron';">+0 Structure</div>
+            <p id="offline-time" style="font-size:0.8em; color:var(--text-secondary); margin-top:10px;"></p>
+        </div>
+        <button onclick="toggleModal('offline-modal')" style="width:100%;">RESUME EXISTENCE</button>
+    </div>
+</div>
+
+<div id="archive-modal" class="modal">
+    <div style="text-align:center; margin-bottom: 30px;">
+        <h1 style="font-family:'Orbitron'; color:var(--atp-color);">SPECIMEN ARCHIVE</h1>
+        <div class="archive-grid" id="specimen-history"></div>
+        <button onclick="toggleModal('archive-modal')" style="margin-top: 30px;">CLOSE</button>
+    </div>
+</div>
+
+<div id="game-wrapper">
+    <div class="panel">
+        <div class="panel-header" id="left-title">Physical Formation</div>
+        <div id="phys-upgrades"></div>
     </div>
 
-    <section class="weather-panel">
-        <div class="weather-now">
-            <div>
-                <div id="w-loc" style="font-weight: 800; font-size: 1.2rem;">Searching...</div>
-                <div id="w-desc" style="color: var(--text-dim); margin-top: 0.2rem; font-size: 0.85rem;">Local Intel Pending</div>
+    <div class="main-display">
+        <div class="resource-hud">
+            <div id="combo-meter">
+                <span class="combo-x" id="combo-val">x1.0</span>
             </div>
-            <div id="w-temp" class="temp-large">--°</div>
-            <button class="expand-btn" onclick="toggleForecast()">Detailed 5-Day Forecast ↓</button>
+            <div style="display:flex; justify-content:space-around; width: 100%;">
+                <div>
+                    <div class="res-val" id="atp-display" style="color:var(--atp-color)">0</div>
+                    <div id="atp-label" style="font-size:0.7em; font-family:'Orbitron';">Potential</div>
+                    <div class="res-ps" id="atp-rate-hud">+0/s</div>
+                </div>
+                <div>
+                    <div class="res-val" id="dna-display" style="color:var(--dna-color)">0</div>
+                    <div id="dna-label" style="font-size:0.7em; font-family:'Orbitron';">Structure</div>
+                    <div class="res-ps" id="dna-rate-hud">+0/s</div>
+                </div>
+            </div>
         </div>
-        <div id="forecast-grid" class="forecast-grid"></div>
-    </section>
 
-    <div class="layout"><div id="news-grid" class="news-grid"></div></div>
+        <div id="specimen-container">
+            <div id="specimen" class="singularity" onclick="handleClick()">●</div>
+        </div>
 
-    <footer>© 2025 GlobalPulse • Created by <a href="https://puffyfactory.com" target="_blank">ProjectM</a></footer>
+        <div style="text-align:center; width: 100%;">
+            <h2 id="stage-name" style="font-family:'Orbitron'; margin:0; font-size:1.3em;">The Void</h2>
+            <div style="height:8px; background:rgba(0,0,0,0.4); border-radius:4px; margin-top:10px; overflow:hidden;">
+                <div id="progress-fill" style="height:100%; width:0%;"></div>
+            </div>
+            <p id="stage-desc" style="font-size:0.75em; color:var(--text-secondary); margin-top:8px;">Begin with a single tap.</p>
+        </div>
+    </div>
 
-    <a href="https://puffyfactory.com" target="_blank" id="bunny-link">
-        <svg class="bunny-svg" viewBox="0 0 24 24"><path d="M7 2 Q6 10 9 12" stroke="white" stroke-width="2" fill="none"/><path d="M17 2 Q18 10 15 12" stroke="white" stroke-width="2" fill="none"/><circle cx="12" cy="15" r="6" fill="white" /><circle cx="10" cy="14" r="0.8" fill="#0b0f1a" /><circle cx="14" cy="14" r="0.8" fill="#0b0f1a" /><path d="M11.5 16 L12.5 16 L12 17 Z" fill="#f43f5e" /></svg>
-    </a>
+    <div class="panel">
+        <div class="panel-header" style="color:var(--dna-color)">Complexity</div>
+        <div id="dna-upgrades"></div>
+    </div>
+</div>
 
-    <script>
-        const NEWS_API_KEY = '2d3ffe08d7f14128a211edf8f45cb1c0';
-        let weatherCache = null, currentUnit = 'F', currentCity = "", currentCat = 'general';
-
-        const STATES = { 'New York': 'NY', 'California': 'CA', 'Texas': 'TX', 'Florida': 'FL', 'Illinois': 'IL', 'Ohio': 'OH', 'Michigan': 'MI', 'Pennsylvania': 'PA', 'Georgia': 'GA', 'North Carolina': 'NC', 'Washington': 'WA', 'Massachusetts': 'MA', 'Arizona': 'AZ', 'Colorado': 'CO', 'Oregon': 'OR', 'Nevada': 'NV' };
-
-        // Intelligence Fallback (Dec 17, 2025)
-        const INTEL_FALLBACK = [
-            { title: "Scott Bessent Nominated as US Treasury Secretary; Market Reacts Favorably", source: "WallSt", img: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=500" },
-            { title: "Buffalo Bills Clinch Top Playoff Seed After Decisive Victory", source: "BillsMafia", img: "https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=500" },
-            { title: "Ethereum (ETH) Whale Activity Spikes as Institutional Adoption Grows", source: "CoinPulse", img: "https://images.unsplash.com/photo-1621416894569-0f39ed31d247?w=500" },
-            { title: "SpaceX Starship Booster Ready for Next-Phase Recovery Test", source: "TechIntel", img: "https://images.unsplash.com/photo-1517976487492-5750f3195933?w=500" }
-        ];
-
-        async function initWeather() {
-            try {
-                const loc = await (await fetch('https://ipapi.co/json/')).json();
-                searchLocation(loc.city);
-            } catch (e) { updateAllData("New York", "NY", 40.71, -74.00); }
+<script>
+    const STORAGE_KEY = 'evo_precision_v16';
+    const INITIAL_STATE = {
+        uni: 1, atp: 0, dna: 0, total: 0, stage: 0,
+        atpRate: 0, dnaRate: 0, multi: 1, click: 1,
+        combo: 1, lastClick: 0, 
+        lastHeartbeat: Date.now(), // Heartbeat for precise tracking
+        archive: [], theme: 'dark',
+        upgrades: {
+            phys: [
+                { name: "Manual Focus", cost: 10, clickAdd: 1, count: 0 },
+                { name: "Quantum Spark", cost: 25, r: 1, count: 0 },
+                { name: "Hadron Fusion", cost: 200, r: 10, count: 0 },
+                { name: "Atomic Bonding", cost: 1500, r: 60, count: 0 }
+            ],
+            dna: [
+                { name: "Entropy Data", cost: 30, r: 0.5, count: 0 },
+                { name: "Neural Logic", cost: 600, m: 0.5, count: 0 }
+            ]
         }
+    };
 
-        async function searchLocation(queryCity = null) {
-            const city = queryCity || document.getElementById('cityInput').value;
-            if(!city) return;
-            try {
-                const geo = await (await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1&format=json`)).json();
-                if(geo.results) {
-                    const res = geo.results[0];
-                    const st = STATES[res.admin1] || res.admin1 || "USA";
-                    updateAllData(res.name, st, res.latitude, res.longitude);
-                }
-            } catch (e) { console.error(e); }
+    let state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || JSON.parse(JSON.stringify(INITIAL_STATE));
+
+    const stages = [
+        { name: "Singularity", emoji: "●", goal: 500, era: "VOID", desc: "Infinite density." },
+        { name: "Quark Soup", emoji: "🔘", goal: 5000, era: "SUBATOMIC", desc: "Particles collide." },
+        { name: "Atom", emoji: "⚛️", goal: 50000, era: "ATOMIC", desc: "Matter emerges." },
+        { name: "Protocell", emoji: "🧫", goal: 1000000, era: "BIOLOGICAL", desc: "Life begins." },
+        { name: "Consciousness", emoji: "🧠", goal: 10000000, era: "COGNITIVE", desc: "Self-awareness." }
+    ];
+
+    function toggleModal(id) {
+        const m = document.getElementById(id);
+        m.style.display = m.style.display === 'block' ? 'none' : 'block';
+        if(id === 'archive-modal') renderArchive();
+    }
+
+    function triggerEvoBurst() {
+        const main = document.querySelector('.main-display');
+        const white = document.getElementById('white-out');
+        const burst = document.createElement('div');
+        burst.className = 'cosmic-burst';
+        main.appendChild(burst);
+        setTimeout(() => burst.remove(), 1200);
+        white.style.opacity = 0.3;
+        setTimeout(() => white.style.opacity = 0, 400);
+    }
+
+    function handleClick() {
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple';
+        document.getElementById('specimen-container').appendChild(ripple);
+        setTimeout(() => ripple.remove(), 500);
+
+        const now = Date.now();
+        if (now - state.lastClick < 1000) state.combo = Math.min(state.combo + 0.1, 10.0);
+        else state.combo = 1.0;
+        state.lastClick = now;
+
+        const bonus = Math.pow(2, state.uni-1);
+        const gain = state.click * state.multi * bonus * state.combo;
+        state.atp += gain;
+        state.total += gain;
+        updateUI();
+    }
+
+    function buy(type, i) {
+        const u = state.upgrades[type][i];
+        const cur = type === 'phys' ? 'atp' : 'dna';
+        if(state[cur] >= u.cost) {
+            state[cur] -= u.cost;
+            u.count++;
+            if(u.r) type === 'phys' ? state.atpRate += u.r : state.dnaRate += u.r;
+            if(u.m) state.multi += u.m;
+            if(u.clickAdd) state.click += u.clickAdd;
+            u.cost = Math.floor(u.cost * 1.55);
+            renderUpgrades(); updateUI(); saveGame();
         }
+    }
 
-        function updateAllData(city, state, lat, lon) {
-            currentCity = city;
-            document.getElementById('w-loc').innerText = `${city}, ${state}`;
-            fetchWeather(lat, lon);
-            fetchNews(currentCat, city);
-        }
-
-        async function fetchWeather(lat, lon) {
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`;
-            weatherCache = await (await fetch(url)).json();
-            updateWeatherDisplay();
-        }
-
-        function updateWeatherDisplay() {
-            if (!weatherCache) return;
-            const cur = weatherCache.current;
-            let temp = currentUnit === 'F' ? (cur.temperature_2m * 9/5 + 32) : cur.temperature_2m;
-            document.getElementById('w-temp').innerText = `${Math.round(temp)}°`;
-            document.getElementById('w-desc').innerText = getWeatherDesc(cur.weather_code);
-
-            const daily = weatherCache.daily;
-            document.getElementById('forecast-grid').innerHTML = daily.time.slice(0, 5).map((date, i) => {
-                let max = daily.temperature_2m_max[i], min = daily.temperature_2m_min[i];
-                if (currentUnit === 'F') { max = (max * 9/5) + 32; min = (min * 9/5) + 32; }
-                return `<div class="forecast-card"><div style="color:var(--accent); font-weight:800;">${new Date(date).toLocaleDateString([], {weekday: 'short'})}</div><div>${Math.round(max)}° / ${Math.round(min)}°</div><div style="font-size:0.6rem;">🌧 ${daily.precipitation_probability_max[i]}%</div></div>`;
-            }).join('');
-        }
-
-        async function fetchNews(category = 'general', citySearch = "") {
-            const grid = document.getElementById('news-grid');
-            grid.innerHTML = "<p style='text-align:center; padding:3rem;'>Syncing satellite intel...</p>";
+    // Fixed Offline Gains logic
+    function processOfflineGains() {
+        const now = Date.now();
+        const secondsAway = Math.floor((now - state.lastHeartbeat) / 1000);
+        
+        if (secondsAway >= 10 && (state.atpRate > 0 || state.dnaRate > 0)) {
+            const bonus = Math.pow(2, state.uni-1);
+            const gainedAtp = (state.atpRate * state.multi * bonus) * secondsAway;
+            const gainedDna = (state.dnaRate * bonus) * secondsAway;
             
-            const proxy = "https://corsproxy.io/?";
-            let q = citySearch ? `q=${citySearch}+${category}` : `category=${category}`;
-            // Requested pageSize=50 for deep news articles
-            const target = `https://newsapi.org/v2/top-headlines?country=us&${q}&pageSize=50&apiKey=${NEWS_API_KEY}`;
-            
-            try {
-                const res = await fetch(proxy + encodeURIComponent(target));
-                const data = await res.json();
-                if(data.articles && data.articles.length > 0) renderNews(data.articles);
-                else renderNews(INTEL_FALLBACK);
-            } catch (e) { renderNews(INTEL_FALLBACK); }
+            state.atp += gainedAtp;
+            state.dna += gainedDna;
+            state.total += gainedAtp;
+
+            document.getElementById('offline-atp').innerText = `+${Math.floor(gainedAtp).toLocaleString()} Potential`;
+            document.getElementById('offline-dna').innerText = `+${Math.floor(gainedDna).toLocaleString()} Structure`;
+            document.getElementById('offline-time').innerText = `Away for ${secondsAway} seconds`;
+            toggleModal('offline-modal');
+        }
+        // Immediately update heartbeat so we don't double count
+        state.lastHeartbeat = now;
+        saveGame();
+    }
+
+    function updateUI() {
+        const bonus = Math.pow(2, state.uni-1);
+        document.getElementById('atp-display').innerText = Math.floor(state.atp).toLocaleString();
+        document.getElementById('dna-display').innerText = Math.floor(state.dna).toLocaleString();
+        document.getElementById('atp-rate-hud').innerText = "+" + Math.floor(state.atpRate * state.multi * bonus).toLocaleString() + "/s";
+        document.getElementById('dna-rate-hud').innerText = "+" + Math.floor(state.dnaRate * bonus).toLocaleString() + "/s";
+        
+        const meter = document.getElementById('combo-meter');
+        meter.style.opacity = state.combo > 1.1 ? 1 : 0;
+        document.getElementById('combo-val').innerText = `x${state.combo.toFixed(1)}`;
+
+        const spec = document.getElementById('specimen');
+        spec.innerText = stages[state.stage].emoji;
+        spec.className = state.stage === 0 ? 'singularity' : '';
+        document.getElementById('stage-name').innerText = stages[state.stage].name;
+        document.getElementById('uni-val').innerText = state.uni;
+        document.getElementById('era-val').innerText = stages[state.stage].era;
+
+        const goal = stages[state.stage].goal;
+        const prev = state.stage > 0 ? stages[state.stage-1].goal : 0;
+        const prog = ((state.total - prev) / (goal - prev)) * 100;
+        document.getElementById('progress-fill').style.width = Math.min(prog, 100) + "%";
+
+        if(state.total >= goal && state.stage < stages.length - 1) {
+            if(!state.archive.includes(state.stage)) state.archive.push(state.stage);
+            state.stage++;
+            triggerEvoBurst();
+            saveGame();
         }
 
-        function renderNews(articles) {
-            const grid = document.getElementById('news-grid');
-            const ticker = document.getElementById('ticker-content');
-            ticker.innerHTML = articles.slice(0, 10).map(a => `<span class="ticker-item">${a.title.toUpperCase()} •</span>`).join('');
-            grid.innerHTML = articles.map(art => `
-                <div class="news-card">
-                    <img src="${art.urlToImage || art.img || 'https://via.placeholder.com/400x225'}">
-                    <div class="card-body"><h3>${art.title}</h3><div style="font-size:0.7rem; color:var(--text-dim); margin-top:5px;">${art.source.name || art.source}</div><a href="${art.url || '#'}" target="_blank" class="btn-read" style="margin-top:15px;">Read Report</a></div>
+        document.querySelectorAll('button[data-cost]').forEach(b => {
+            b.disabled = state[b.dataset.cur] < b.dataset.cost;
+        });
+
+        const isBio = state.stage >= 3;
+        document.getElementById('atp-label').innerText = isBio ? "ATP" : "Potential";
+        document.getElementById('dna-label').innerText = isBio ? "DNA" : "Structure";
+    }
+
+    function renderArchive() {
+        const cont = document.getElementById('specimen-history');
+        cont.innerHTML = state.archive.map(i => `
+            <div class="history-card">
+                <b style="color:var(--atp-color)">${stages[i].emoji} ${stages[i].name}</b>
+                <div style="font-size:0.7em; opacity:0.6;">${stages[i].era}: ${stages[i].desc}</div>
+            </div>
+        `).join('') || "No archived specimens.";
+    }
+
+    function renderUpgrades() {
+        const render = (id, type) => {
+            document.getElementById(id).innerHTML = state.upgrades[type].map((u, i) => `
+                <div class="upgrade-card ${type==='dna'?'dna-card':''}">
+                    <div><b>${u.name}</b><br><small>Lvl ${u.count}</small></div>
+                    <button data-cost="${u.cost}" data-cur="${type==='phys'?'atp':'dna'}" onclick="buy('${type}', ${i})">${u.cost.toLocaleString()}</button>
                 </div>
             `).join('');
-        }
+        };
+        render('phys-upgrades', 'phys');
+        render('dna-upgrades', 'dna');
+    }
 
-        function changeCategory(cat, btn) {
-            currentCat = cat;
-            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            fetchNews(cat, currentCity);
-        }
+    function toggleTheme() {
+        state.theme = state.theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', state.theme);
+        saveGame();
+    }
 
-        function toggleUnits() { 
-            currentUnit = currentUnit === 'C' ? 'F' : 'C'; 
-            document.getElementById('unitBtnPC').innerText = currentUnit;
-            document.getElementById('unitBtnMob').innerText = currentUnit;
-            updateWeatherDisplay(); 
-        }
-        function toggleForecast() { document.getElementById('forecast-grid').classList.toggle('active'); }
-        function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }
-        function getWeatherDesc(code) {
-            const codes = { 0: "Clear", 1: "Mainly Clear", 2: "Partly Cloudy", 3: "Overcast", 45: "Foggy", 61: "Rain", 71: "Snow", 95: "Storm" };
-            return codes[code] || "Fair";
-        }
+    function saveGame() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
 
-        initWeather();
-    </script>
+    // Main Game Tick
+    setInterval(() => {
+        const now = Date.now();
+        // Update Heartbeat every tick
+        state.lastHeartbeat = now;
+
+        if (now - state.lastClick > 1500 && state.combo > 1.0) state.combo = Math.max(1.0, state.combo - 0.2);
+        
+        const bonus = Math.pow(2, state.uni-1);
+        const atpTick = (state.atpRate * state.multi * bonus) / 10;
+        const dnaTick = (state.dnaRate * bonus) / 10;
+
+        state.atp += atpTick;
+        state.dna += dnaTick;
+        state.total += atpTick;
+        
+        updateUI();
+    }, 100);
+
+    // Persist to storage every 2 seconds
+    setInterval(saveGame, 2000);
+
+    // Initial Start
+    document.documentElement.setAttribute('data-theme', state.theme);
+    renderUpgrades(); 
+    processOfflineGains();
+    updateUI();
+
+    function resetGame() { 
+        if(confirm("Complete Reset? This cannot be undone.")) { 
+            localStorage.clear(); 
+            location.reload(); 
+        } 
+    }
+</script>
 </body>
 </html>
