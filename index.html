@@ -1,422 +1,283 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Universal Evolution: Mobile Scroll</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROJECT M | WHITE PAPER [CLASSIFIED]</title>
     <style>
-        :root[data-theme="dark"] {
-            --atp-color: #00ff88; --atp-glow: rgba(0, 255, 136, 0.4);
-            --dna-color: #bc13fe; --dna-glow: rgba(188, 19, 254, 0.4);
-            --danger-color: #ff3860; --bg-color: #050508;
-            --panel-bg: rgba(15, 15, 25, 0.96);
-            --panel-border: 1px solid rgba(255, 255, 255, 0.1);
-            --text-primary: #ffffff; --text-secondary: #8899aa;
-            --combo-color: #ffdf00;
-        }
-        :root[data-theme="light"] {
-            --atp-color: #00a86b; --atp-glow: rgba(0, 168, 107, 0.2);
-            --dna-color: #8e44ad; --dna-glow: rgba(142, 68, 173, 0.2);
-            --danger-color: #c0392b; --bg-color: #f4f7f9;
-            --panel-bg: rgba(255, 255, 255, 0.98);
-            --panel-border: 1px solid rgba(0, 0, 0, 0.1);
-            --text-primary: #2c3e50; --text-secondary: #607d8b;
-            --combo-color: #f39c12;
+        :root {
+            --bg: #0a0a0a;
+            --panel: #111;
+            --border: #333;
+            --accent: #00ff41; /* Hacker Green */
+            --text: #eee;
+            --muted: #888;
+            --font-mono: 'Courier New', Courier, monospace;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body { 
-            font-family: 'Roboto', sans-serif; 
-            background: var(--bg-color); 
-            color: var(--text-primary); 
-            margin: 0; 
-            min-height: 100vh; 
-            overflow-x: hidden; 
-            overflow-y: auto; /* Allow scrolling */
-            overscroll-behavior-y: contain; /* Prevents pull-to-refresh on mobile */
-        }
-        
-        #white-out { position: fixed; top:0; left:0; width:100%; height:100%; background:white; opacity:0; pointer-events:none; z-index:9999; transition: opacity 0.3s; }
-
-        /* Desktop Layout */
-        #game-wrapper { 
-            display: grid; 
-            grid-template-columns: 340px 1fr 340px; 
-            width: 100%; 
-            max-width: 1600px; 
-            margin: 0 auto;
-            gap: 20px; 
-            padding: 25px; 
-            padding-top: 90px; 
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font-mono);
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
         }
 
-        /* Mobile Layout Adjustments */
-        @media (max-width: 1200px) { 
-            #game-wrapper { 
-                grid-template-columns: 1fr; 
-                padding: 15px;
-                padding-top: 100px; 
-                gap: 20px;
-            } 
-            .main-display { order: -1; } /* Specimen at the top */
-            .panel { height: auto !important; max-height: none !important; } /* Allow panels to grow */
+        .container {
+            max-width: 800px;
+            width: 100%;
+            border: 1px solid var(--border);
+            padding: 40px;
+            background: var(--panel);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.05);
+            position: relative;
         }
 
-        .panel { 
-            background: var(--panel-bg); 
-            backdrop-filter: blur(20px); 
-            border-radius: 20px; 
-            border: var(--panel-border); 
-            padding: 20px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
-        }
-
-        .panel-header { 
-            font-family: 'Orbitron'; 
-            font-size: 0.85em; 
-            border-bottom: 1px solid rgba(255,255,255,0.05); 
-            padding-bottom: 12px; 
-            margin-bottom: 15px; 
-            text-transform: uppercase; 
-            color: var(--atp-color); 
-        }
-
-        .main-display { position: relative; display: flex; flex-direction: column; align-items: center; }
-
-        .resource-hud { 
-            text-align: center; 
-            background: var(--panel-bg); 
-            padding: 20px; 
-            border-radius: 25px; 
-            border: var(--panel-border); 
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2); 
-            position: relative; 
-            z-index: 10; 
-            width: 100%; 
-        }
-
-        .res-val { font-family: 'Orbitron'; font-weight: 700; font-size: 2em; filter: drop-shadow(0 0 8px currentColor); }
-        .res-ps { font-size: 0.7em; font-family: 'Orbitron'; color: var(--text-secondary); margin-top: 5px; opacity: 0.8; }
-
-        #combo-meter { position: absolute; right: 20px; top: 20px; font-family: 'Orbitron'; text-align: right; opacity: 0; transition: opacity 0.3s; }
-        #combo-meter.active { opacity: 1; }
-        .combo-x { font-size: 1.5em; color: var(--combo-color); font-weight: bold; display: block; }
-
-        #specimen-container { 
-            position: relative; width: 260px; height: 260px; margin: 25px auto; 
-            display: flex; justify-content: center; align-items: center; 
-            border-radius: 50%; border: 1px solid var(--atp-color); 
-            box-shadow: 0 0 40px var(--atp-glow); transition: 0.2s; z-index: 5; 
-        }
-
-        #specimen { font-size: 90px; cursor: pointer; user-select: none; z-index: 6; transition: transform 0.05s; }
-        #specimen.singularity { font-size: 25px; color: #fff; text-shadow: 0 0 20px #fff, 0 0 40px var(--atp-color); }
-
-        @keyframes cosmic-wave { 0% { transform: scale(0.5); opacity: 1; border-width: 20px; } 100% { transform: scale(5); opacity: 0; border-width: 0px; } }
-        .cosmic-burst { position: absolute; top: 50%; left: 50%; width: 200px; height: 200px; margin-left: -100px; margin-top: -100px; border-radius: 50%; border: 10px solid var(--atp-color); pointer-events: none; z-index: 1; animation: cosmic-wave 1.2s ease-out forwards; mix-blend-mode: screen; }
-
-        .ripple { position: absolute; width: 100%; height: 100%; border: 2px solid var(--atp-color); border-radius: 50%; pointer-events: none; animation: rippleEffect 0.5s ease-out forwards; }
-        @keyframes rippleEffect { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.8); opacity: 0; } }
-
-        .upgrade-card { 
-            background: rgba(255,255,255,0.03); 
-            padding: 12px; border-radius: 12px; margin-bottom: 10px; 
-            border-left: 4px solid var(--atp-color); 
-            display: flex; justify-content: space-between; align-items: center; 
-        }
-        .dna-card { border-left-color: var(--dna-color); }
-
-        button { font-family: 'Orbitron'; font-size: 0.7em; padding: 12px; border-radius: 8px; border: none; cursor: pointer; background: var(--atp-color); color: #000; font-weight: bold; min-width: 90px; }
-        button:disabled { opacity: 0.2; cursor: not-allowed; }
-
-        .top-bar { 
-            position: fixed; top:0; left:0; width:100%; height:80px; 
-            background: var(--panel-bg); backdrop-filter: blur(25px); 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 0 20px; border-bottom: var(--panel-border); z-index: 1000; 
+        /* HEADER */
+        header {
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+            text-align: center;
         }
         
-        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index: 5000; padding: 20px; overflow-y: auto; }
-        .modal-content { max-width: 600px; margin: 40px auto; background: #111; padding: 30px; border-radius: 20px; border: 1px solid var(--atp-color); text-align: center; }
-        
-        .archive-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-top: 20px; }
-        .history-card { background: #1a1a1a; padding: 15px; border-radius: 12px; border-left: 3px solid var(--atp-color); text-align: left; }
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            letter-spacing: -2px;
+            text-transform: uppercase;
+            color: var(--accent);
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+        }
 
-        #progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--atp-color), var(--dna-color)); transition: width 0.3s; }
+        .meta-data {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px dashed #333;
+            padding-top: 10px;
+        }
+
+        /* CONTENT TYPOGRAPHY */
+        h2 {
+            color: var(--accent);
+            border-left: 4px solid var(--accent);
+            padding-left: 15px;
+            margin-top: 50px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        h3 {
+            color: #fff;
+            margin-top: 30px;
+            font-size: 1.2rem;
+            text-decoration: underline;
+            text-decoration-color: #333;
+        }
+
+        p { margin-bottom: 20px; text-align: justify; }
+
+        ul { margin-bottom: 20px; padding-left: 20px; }
+        li { margin-bottom: 10px; color: #ccc; }
+        li::marker { color: var(--accent); content: ">> "; }
+
+        code {
+            background: #222;
+            padding: 2px 6px;
+            color: #ff9900;
+            font-family: var(--font-mono);
+            border: 1px solid #444;
+        }
+
+        blockquote {
+            border: 1px dashed var(--accent);
+            background: rgba(0, 255, 65, 0.05);
+            margin: 30px 0;
+            padding: 20px;
+            color: var(--accent);
+            font-style: italic;
+        }
+
+        /* TABLES */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            font-size: 0.9rem;
+        }
+        th, td {
+            border: 1px solid var(--border);
+            padding: 12px;
+            text-align: left;
+        }
+        th { background: #1a1a1a; color: var(--accent); }
+        tr:hover { background: #151515; }
+
+        /* BUTTONS */
+        .btn-nav {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--accent);
+            color: black;
+            padding: 10px 20px;
+            text-decoration: none;
+            font-weight: bold;
+            border: 2px solid var(--accent);
+            transition: all 0.3s;
+            z-index: 100;
+        }
+        .btn-nav:hover { background: black; color: var(--accent); }
+
+        .btn-print {
+            display: block;
+            width: 100%;
+            background: #222;
+            color: #888;
+            border: 1px dashed #444;
+            padding: 15px;
+            text-align: center;
+            margin-top: 50px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .btn-print:hover { color: white; border-color: white; }
+
+        /* PRINT STYLES */
+        @media print {
+            body { background: white; color: black; }
+            .container { border: none; box-shadow: none; max-width: 100%; padding: 0; }
+            .btn-nav, .btn-print { display: none; }
+            h1, h2 { color: black; border-color: black; text-shadow: none; }
+            li::marker { color: black; }
+            code { background: #eee; color: black; border: none; }
+            blockquote { border-color: black; background: #eee; color: black; }
+            table, th, td { border: 1px solid black; }
+        }
     </style>
 </head>
 <body>
 
-<div id="white-out"></div>
+    <a href="index.html" class="btn-nav"><< RETURN TO TERMINAL</a>
 
-<div class="top-bar">
-    <div style="font-family:'Orbitron'; font-size:0.75em; letter-spacing:1px;">
-        UNI: <span id="uni-val" style="color:gold">1</span> | <span id="era-val">VOID</span>
-    </div>
-    <div style="display:flex; gap:10px; align-items: center;">
-        <button onclick="toggleModal('archive-modal')" style="background:none; border:1px solid var(--text-secondary); color:var(--text-secondary); min-width:auto; padding: 8px;">ARC</button>
-        <button onclick="toggleTheme()" style="min-width:auto; background:#333; color:#fff; padding: 8px;">🌗</button>
-        <button onclick="resetGame()" style="min-width:auto; background:var(--danger-color); color:#fff; padding: 8px;">X</button>
-    </div>
-</div>
-
-<div id="offline-modal" class="modal">
-    <div class="modal-content">
-        <h2 style="font-family:'Orbitron'; color:gold;">RECONNECTED</h2>
-        <div style="margin: 20px 0; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 15px;">
-            <div id="offline-atp" style="color:var(--atp-color); font-size: 1.5em; font-family: 'Orbitron';">+0</div>
-            <div id="offline-dna" style="color:var(--dna-color); font-size: 1.1em; font-family: 'Orbitron';">+0</div>
-            <p id="offline-time" style="font-size:0.8em; color:var(--text-secondary); margin-top:10px;"></p>
-        </div>
-        <button onclick="toggleModal('offline-modal')" style="width:100%;">RESUME</button>
-    </div>
-</div>
-
-<div id="archive-modal" class="modal">
-    <div style="text-align:center;">
-        <h1 style="font-family:'Orbitron'; color:var(--atp-color); font-size: 1.5em;">ARCHIVE</h1>
-        <div class="archive-grid" id="specimen-history"></div>
-        <button onclick="toggleModal('archive-modal')" style="margin-top: 30px;">CLOSE</button>
-    </div>
-</div>
-
-<div id="game-wrapper">
-    <div class="main-display">
-        <div class="resource-hud">
-            <div id="combo-meter">
-                <span class="combo-x" id="combo-val">x1.0</span>
+    <div class="container">
+        <header>
+            <h1>Project M</h1>
+            <div style="letter-spacing: 5px; margin-bottom: 10px;">THE IMMUTABLE VALUE LADDER</div>
+            
+            <div class="meta-data">
+                <span>VERSION: 1.0.5 (GENESIS)</span>
+                <span>STATUS: IMMUTABLE / RENOUNCED</span>
+                <span>NET: ETHEREUM MAINNET</span>
             </div>
-            <div style="display:flex; justify-content:space-around; width: 100%;">
-                <div>
-                    <div class="res-val" id="atp-display" style="color:var(--atp-color)">0</div>
-                    <div id="atp-label" style="font-size:0.65em; font-family:'Orbitron'; text-transform: uppercase;">Potential</div>
-                    <div class="res-ps" id="atp-rate-hud">+0/s</div>
-                </div>
-                <div>
-                    <div class="res-val" id="dna-display" style="color:var(--dna-color)">0</div>
-                    <div id="dna-label" style="font-size:0.65em; font-family:'Orbitron'; text-transform: uppercase;">Structure</div>
-                    <div class="res-ps" id="dna-rate-hud">+0/s</div>
-                </div>
-            </div>
-        </div>
+        </header>
 
-        <div id="specimen-container">
-            <div id="specimen" class="singularity" onclick="handleClick()">●</div>
-        </div>
+        <h2>1. Abstract</h2>
+        <p>Project M is an autonomous, decentralized economic experiment built on Ethereum. It eliminates the "human error" found in modern crypto projects: no developers, no roadmaps, no marketing budgets, and no liquidity pools to manage.</p>
+        <p>It is a self-contained economy. The smart contract acts as the automated market maker, treasury, and escrow. Participants join by interacting directly with the contract. As the community grows, the "Level" of the system rises, mathematically increasing the cost of entry and the value of the treasury for existing holders.</p>
 
-        <div style="text-align:center; width: 100%; margin-bottom: 30px;">
-            <h2 id="stage-name" style="font-family:'Orbitron'; margin:0; font-size:1.3em;">The Void</h2>
-            <div style="height:10px; background:rgba(0,0,0,0.4); border-radius:5px; margin-top:10px; overflow:hidden;">
-                <div id="progress-fill" style="height:100%; width:0%;"></div>
-            </div>
-            <p id="stage-desc" style="font-size:0.8em; color:var(--text-secondary); margin-top:8px;">Tap the core to begin.</p>
-        </div>
-    </div>
+        <h2>2. The Philosophy</h2>
+        <blockquote>"Code is Law. Zero Trust. Fair Launch."</blockquote>
+        <p>DeFi has been corrupted by "Developer Greed"—pre-mines, unlocked liquidity, and administrative backdoors. Project M returns to the "Day Zero" principles of crypto:</p>
+        <ul>
+            <li><strong>Immutable:</strong> The rules are written in Solidity and cannot be changed.</li>
+            <li><strong>Zero Trust:</strong> You do not need to trust a person; you only need to verify the math.</li>
+            <li><strong>Fair Launch:</strong> Everyone starts at the same level. No VC allocations. No team tokens.</li>
+        </ul>
 
-    <div class="panel">
-        <div class="panel-header" id="left-title">Physical Formation</div>
-        <div id="phys-upgrades"></div>
-    </div>
-
-    <div class="panel">
-        <div class="panel-header" style="color:var(--dna-color)">Complexity Research</div>
-        <div id="dna-upgrades"></div>
-    </div>
-</div>
-
-<script>
-    const STORAGE_KEY = 'evo_mobile_v17';
-    const INITIAL_STATE = {
-        uni: 1, atp: 0, dna: 0, total: 0, stage: 0,
-        atpRate: 0, dnaRate: 0, multi: 1, click: 1,
-        combo: 1, lastClick: 0, 
-        lastHeartbeat: Date.now(),
-        archive: [], theme: 'dark',
-        upgrades: {
-            phys: [
-                { name: "Manual Focus", cost: 10, clickAdd: 1, count: 0 },
-                { name: "Quantum Spark", cost: 25, r: 1, count: 0 },
-                { name: "Hadron Fusion", cost: 200, r: 10, count: 0 },
-                { name: "Atomic Bonding", cost: 1500, r: 60, count: 0 }
-            ],
-            dna: [
-                { name: "Entropy Data", cost: 30, r: 0.5, count: 0 },
-                { name: "Neural Logic", cost: 600, m: 0.5, count: 0 }
-            ]
-        }
-    };
-
-    let state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || JSON.parse(JSON.stringify(INITIAL_STATE));
-
-    const stages = [
-        { name: "Singularity", emoji: "●", goal: 500, era: "VOID", desc: "Infinite density." },
-        { name: "Quark Soup", emoji: "🔘", goal: 5000, era: "SUBATOMIC", desc: "Particles collide." },
-        { name: "Atom", emoji: "⚛️", goal: 50000, era: "ATOMIC", desc: "Matter emerges." },
-        { name: "Protocell", emoji: "🧫", goal: 1000000, era: "BIOLOGICAL", desc: "Life begins." },
-        { name: "Consciousness", emoji: "🧠", goal: 10000000, era: "COGNITIVE", desc: "Self-awareness." }
-    ];
-
-    function toggleModal(id) {
-        const m = document.getElementById(id);
-        m.style.display = m.style.display === 'block' ? 'none' : 'block';
-        if(id === 'archive-modal') renderArchive();
-    }
-
-    function triggerEvoBurst() {
-        const main = document.querySelector('.main-display');
-        const white = document.getElementById('white-out');
-        const burst = document.createElement('div');
-        burst.className = 'cosmic-burst';
-        main.appendChild(burst);
-        setTimeout(() => burst.remove(), 1200);
-        white.style.opacity = 0.3;
-        setTimeout(() => white.style.opacity = 0, 400);
-    }
-
-    function handleClick() {
-        const ripple = document.createElement('div');
-        ripple.className = 'ripple';
-        document.getElementById('specimen-container').appendChild(ripple);
-        setTimeout(() => ripple.remove(), 500);
-
-        const now = Date.now();
-        if (now - state.lastClick < 1000) state.combo = Math.min(state.combo + 0.1, 10.0);
-        else state.combo = 1.0;
-        state.lastClick = now;
-
-        const bonus = Math.pow(2, state.uni-1);
-        const gain = state.click * state.multi * bonus * state.combo;
-        state.atp += gain;
-        state.total += gain;
-        updateUI();
-    }
-
-    function buy(type, i) {
-        const u = state.upgrades[type][i];
-        const cur = type === 'phys' ? 'atp' : 'dna';
-        if(state[cur] >= u.cost) {
-            state[cur] -= u.cost;
-            u.count++;
-            if(u.r) type === 'phys' ? state.atpRate += u.r : state.dnaRate += u.r;
-            if(u.m) state.multi += u.m;
-            if(u.clickAdd) state.click += u.clickAdd;
-            u.cost = Math.floor(u.cost * 1.55);
-            renderUpgrades(); updateUI(); saveGame();
-        }
-    }
-
-    function processOfflineGains() {
-        const now = Date.now();
-        const secondsAway = Math.floor((now - state.lastHeartbeat) / 1000);
-        if (secondsAway >= 10 && (state.atpRate > 0 || state.dnaRate > 0)) {
-            const bonus = Math.pow(2, state.uni-1);
-            const gainedAtp = (state.atpRate * state.multi * bonus) * secondsAway;
-            const gainedDna = (state.dnaRate * bonus) * secondsAway;
-            state.atp += gainedAtp; state.dna += gainedDna; state.total += gainedAtp;
-            document.getElementById('offline-atp').innerText = `+${Math.floor(gainedAtp).toLocaleString()} Potential`;
-            document.getElementById('offline-dna').innerText = `+${Math.floor(gainedDna).toLocaleString()} Structure`;
-            document.getElementById('offline-time').innerText = `Away for ${secondsAway}s`;
-            toggleModal('offline-modal');
-        }
-        state.lastHeartbeat = now;
-        saveGame();
-    }
-
-    function updateUI() {
-        const bonus = Math.pow(2, state.uni-1);
-        document.getElementById('atp-display').innerText = Math.floor(state.atp).toLocaleString();
-        document.getElementById('dna-display').innerText = Math.floor(state.dna).toLocaleString();
-        document.getElementById('atp-rate-hud').innerText = "+" + Math.floor(state.atpRate * state.multi * bonus).toLocaleString() + "/s";
-        document.getElementById('dna-rate-hud').innerText = "+" + Math.floor(state.dnaRate * bonus).toLocaleString() + "/s";
+        <h2>3. Core Mechanics</h2>
         
-        const meter = document.getElementById('combo-meter');
-        meter.style.opacity = state.combo > 1.1 ? 1 : 0;
-        document.getElementById('combo-val').innerText = `x${state.combo.toFixed(1)}`;
+        <h3>3.1 The Level System (Entry)</h3>
+        <p>The contract utilizes a global variable called <code>contractLevel</code>. The price to mint 1.0 Token is determined by the current Level.</p>
+        <p>Unlike linear models, Project M uses a <strong>Decade Multiplier</strong> system. The price difficulty jumps significantly every 10 levels, creating periods of urgency.</p>
+        
+        <table>
+            <tr>
+                <th>Level Range</th>
+                <th>Price Multiplier</th>
+                <th>Entry Cost (Approx)</th>
+            </tr>
+            <tr>
+                <td>10 - 19</td>
+                <td>0.001 ETH</td>
+                <td>0.010 - 0.019 ETH</td>
+            </tr>
+            <tr>
+                <td>20 - 29</td>
+                <td>0.002 ETH</td>
+                <td>0.040 - 0.058 ETH</td>
+            </tr>
+            <tr>
+                <td>30 - 39</td>
+                <td>0.003 ETH</td>
+                <td>0.090 - 0.117 ETH</td>
+            </tr>
+            <tr>
+                <td>40+</td>
+                <td>0.004+ ETH</td>
+                <td>0.160+ ETH</td>
+            </tr>
+        </table>
 
-        const spec = document.getElementById('specimen');
-        spec.innerText = stages[state.stage].emoji;
-        spec.className = state.stage === 0 ? 'singularity' : '';
-        document.getElementById('stage-name').innerText = stages[state.stage].name;
-        document.getElementById('uni-val').innerText = state.uni;
-        document.getElementById('era-val').innerText = stages[state.stage].era;
+        <h3>3.2 Mining (Maintenance)</h3>
+        <p>Project M introduces a "catch-up" mechanic called <strong>Mining</strong>. If you join at Level 10, and the game advances to Level 20, your token balance remains static, but your potential to own more of the network increases.</p>
+        <p>A player can send ETH to "Mine" the difference between their entry level and the current contract level. This prevents dilution and allows active participants to maintain their percentage share of the Total Supply.</p>
 
-        const goal = stages[state.stage].goal;
-        const prev = state.stage > 0 ? stages[state.stage-1].goal : 0;
-        const prog = ((state.total - prev) / (goal - prev)) * 100;
-        document.getElementById('progress-fill').style.width = Math.min(prog, 100) + "%";
+        <h3>3.3 The Exit (Burning)</h3>
+        <p>Liquidity is not on Uniswap. Liquidity is <strong>inside</strong> the contract. At any moment, a player can execute <code>burnAllSoap()</code> or send <strong>69 gwei</strong> to the contract to trigger a full exit.</p>
+        <p>When you burn, you destroy your tokens and remove your exact percentage share of the ETH treasury. A <strong>4% Tax</strong> is applied on exit, which remains in the treasury to boost the value for remaining holders.</p>
 
-        if(state.total >= goal && state.stage < stages.length - 1) {
-            if(!state.archive.includes(state.stage)) state.archive.push(state.stage);
-            state.stage++;
-            triggerEvoBurst();
-            saveGame();
-        }
+        <h2>4. The Hive Protocol (Cooperative Income)</h2>
+        <p>Unlike a traditional Ponzi structure (Zero-Sum), Project M includes a mechanic for <strong>Positive-Sum</strong> growth.</p>
+        <p>The <code>injectRevenue()</code> function allows anyone to deposit ETH into the treasury <em>without</em> minting new tokens. This allows the community to build external income sources (merch, tools, ad revenue) and inject the profits back into the contract.</p>
+        <p><strong>The Math:</strong> If the Treasury grows from external revenue while the Total Supply stays the same, the "Burn Value" of every existing token increases instantly.</p>
 
-        document.querySelectorAll('button[data-cost]').forEach(b => {
-            b.disabled = state[b.dataset.cur] < b.dataset.cost;
-        });
+        <h2>5. Technical Specifications</h2>
+        <table>
+            <tr>
+                <td><strong>Symbol</strong></td>
+                <td>PMT (Project M Token)</td>
+            </tr>
+            <tr>
+                <td><strong>Decimals</strong></td>
+                <td>18</td>
+            </tr>
+            <tr>
+                <td><strong>Starting Level</strong></td>
+                <td>10</td>
+            </tr>
+            <tr>
+                <td><strong>Burn Tax</strong></td>
+                <td>4% (Stays in Treasury)</td>
+            </tr>
+            <tr>
+                <td><strong>Admin Keys</strong></td>
+                <td>None (Renounced)</td>
+            </tr>
+            <tr>
+                <td><strong>Compiler</strong></td>
+                <td>Solidity ^0.8.28</td>
+            </tr>
+        </table>
 
-        const isBio = state.stage >= 3;
-        document.getElementById('atp-label').innerText = isBio ? "ATP" : "Potential";
-        document.getElementById('dna-label').innerText = isBio ? "DNA" : "Structure";
-    }
+        <h2>6. Risk Disclosure</h2>
+        <div style="border: 1px solid var(--accent); padding: 15px; color: #aaa; font-size: 0.85rem;">
+            <strong style="color: var(--accent);">⚠ SOCIAL EXPERIMENT WARNING</strong><br><br>
+            Project M is strictly a game theory experiment. It involves high risk and the potential for total loss of funds. The project has no roadmap, no utility, and no intrinsic value outside of the participant network.<br><br>
+            <strong>Jurisdiction:</strong> This project is decentralized and autonomous. It is the responsibility of every user to ensure their interaction with this smart contract complies with the laws of their local jurisdiction.<br><br>
+            <strong>No Developer Liability:</strong> The deployer of this contract has renounced all control (Ownership = 0x0). The code is open-source and provided "as is."
+        </div>
 
-    function renderArchive() {
-        const cont = document.getElementById('specimen-history');
-        cont.innerHTML = state.archive.map(i => `
-            <div class="history-card">
-                <b style="color:var(--atp-color)">${stages[i].emoji} ${stages[i].name}</b>
-                <div style="font-size:0.7em; opacity:0.6;">${stages[i].era}: ${stages[i].desc}</div>
-            </div>
-        `).join('') || "Empty archive.";
-    }
+        <button class="btn-print" onclick="window.print()">[ SAVE AS PDF / PRINT ]</button>
 
-    function renderUpgrades() {
-        const render = (id, type) => {
-            document.getElementById(id).innerHTML = state.upgrades[type].map((u, i) => `
-                <div class="upgrade-card ${type==='dna'?'dna-card':''}">
-                    <div><b>${u.name}</b><br><small>Lvl ${u.count}</small></div>
-                    <button data-cost="${u.cost}" data-cur="${type==='phys'?'atp':'dna'}" onclick="buy('${type}', ${i})">${u.cost.toLocaleString()}</button>
-                </div>
-            `).join('');
-        };
-        render('phys-upgrades', 'phys');
-        render('dna-upgrades', 'dna');
-    }
+    </div>
 
-    function toggleTheme() {
-        state.theme = state.theme === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', state.theme);
-        saveGame();
-    }
-
-    function saveGame() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    }
-
-    setInterval(() => {
-        const now = Date.now();
-        state.lastHeartbeat = now;
-        if (now - state.lastClick > 1500 && state.combo > 1.0) state.combo = Math.max(1.0, state.combo - 0.2);
-        const bonus = Math.pow(2, state.uni-1);
-        const atpTick = (state.atpRate * state.multi * bonus) / 10;
-        const dnaTick = (state.dnaRate * bonus) / 10;
-        state.atp += atpTick; state.dna += dnaTick; state.total += atpTick;
-        updateUI();
-    }, 100);
-
-    setInterval(saveGame, 2000);
-
-    document.documentElement.setAttribute('data-theme', state.theme);
-    renderUpgrades(); 
-    processOfflineGains();
-    updateUI();
-
-    function resetGame() { 
-        if(confirm("Reset everything?")) { localStorage.clear(); location.reload(); } 
-    }
-</script>
 </body>
-</html>
+    </html>
+        
